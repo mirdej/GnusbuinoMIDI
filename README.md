@@ -1,0 +1,1 @@
+This is the USB-MIDI Library for the Gnusbuino / Babygnusbuino
