@@ -11,7 +11,7 @@
 --------------------------------------------------------------------------------------------- */
 
  
-#include "MIDI.h"            // you have to include the Gnusbuino MIDI library
+#include "GnusbuinoMIDI.h"            // you have to include the Gnusbuino MIDI library
 
 
 MIDIMessage message;         // variable to store the last received MIDI message

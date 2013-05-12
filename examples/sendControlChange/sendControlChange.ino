@@ -14,7 +14,7 @@
  */
 
  
-#include "MIDI.h"            // you have to include the Gnusbuino MIDI library
+#include "GnusbuinoMIDI.h"            // you have to include the Gnusbuino MIDI library
 
 
 int sensorValue = 0;         // variable to store the value coming from the sensor

@@ -11,7 +11,7 @@
 
 
 
-#include <MIDI.h>        // you MUST include the Gnusbuino MIDI library
+#include <GnusbuinoMIDI.h>        // you MUST include the Gnusbuino MIDI library
 
 unsigned long lastTime;            // variable to store the last time we sent a chord
 
