@@ -13,12 +13,12 @@
  * one side pin (either one) to ground,  the other side pin to +5V
  */
 
- 
 #include "GnusbuinoMIDI.h"            // you have to include the Gnusbuino MIDI library
 
+#define SENSOR_PIN 2
 
-int sensorValue = 0;         // variable to store the value coming from the sensor
-int sentValue = -1;          // we only want to send data when there's something changing
+unsigned char sensorValue = 0;         // variable to store the value coming from the sensor
+unsigned char sentValue = 255;         // we only want to send data when there's something changing
                              // so we have to keep track of the last value that was sent to the host
 
 void setup() {               // nothing to do in setup, pins are inputs by default
@@ -27,7 +27,7 @@ void setup() {               // nothing to do in setup, pins are inputs by defau
 
 void loop() {
   
-  sensorValue = analogRead(A1) / 8;                       // analogRead returns 0-1023, we need 0-127
+  sensorValue = analogRead(SENSOR_PIN) / 8;                       // analogRead returns 0-1023, we need 0-127
   if (sensorValue != sentValue) {                         // compare actual readout to last sent value    
        
       //MIDI.write(MIDI_CONTROLCHANGE, controller number , controller value )

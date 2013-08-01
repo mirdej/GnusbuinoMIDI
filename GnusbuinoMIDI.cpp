@@ -121,7 +121,7 @@ void MIDIClass::sendMIDI(void) {
 
 	if (usbInterruptIsReady()) {	// ready to send some MIDI ?
 		if (_midiSendQueue.Dequeue(this->_midiMsg)) {
-				statusLedBlink(StatusLed_Yellow);
+				//statusLedBlink(StatusLed_Yellow);
 				usbSetInterrupt(this->_midiMsg, 4);
 		}
 	}
