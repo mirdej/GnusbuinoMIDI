@@ -47,9 +47,11 @@
 #define MIDI_CONTINUE			0xFB
 #define MIDI_STOP				0xFC
 
-
-#define MIDI_MAX_BUFFER		127
-
+#if defined(__AVR_ATtiny85__)
+	#define MIDI_MAX_BUFFER		10
+#else
+	#define MIDI_MAX_BUFFER		128
+#endif
 
 typedef struct {
 	unsigned char command;
@@ -70,9 +72,9 @@ class MIDIQueueNode {
 
 class MIDIQueue {  
 private:
-   MIDIQueueNode* front;
-   MIDIQueueNode* rear;
-   int count;
+    MIDIQueueNode* front;
+    MIDIQueueNode* rear;
+	int count;
 
 public:
     MIDIQueue();

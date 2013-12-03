@@ -47,10 +47,12 @@ MIDIQueue::MIDIQueue() {
  
 void MIDIQueue::Enqueue(unsigned char cmd, unsigned char data1, unsigned char data2) {
 
-		if (count >= MIDI_MAX_BUFFER) {				// avoid overflow
+		if (this->count >= MIDI_MAX_BUFFER-1) {				// avoid overflow
 			unsigned char  t[4];
 			this->Dequeue(t);	
+	//	PORTB |= (1 << 0);
 		}
+		
        MIDIQueueNode* tmp = new MIDIQueueNode();		       // Create a new node
 
        tmp->cmd = cmd;
@@ -64,7 +66,7 @@ void MIDIQueue::Enqueue(unsigned char cmd, unsigned char data1, unsigned char da
            rear->next = tmp;		  // Append to the list
            rear = tmp;
        }
-       count++;
+       this->count++;
    }      
 
 unsigned char MIDIQueue::Dequeue(unsigned char* data) {          
@@ -77,14 +79,14 @@ unsigned char MIDIQueue::Dequeue(unsigned char* data) {
 			
       		MIDIQueueNode* tmp = front;
       		front = front->next; // Move the front pointer to next node
-     		count--;
+     		this->count--;
     		delete tmp; 
     		return 1;
     	} else return 0;
    } 
    
-   	int MIDIQueue::Size() { return count;}
-	bool MIDIQueue::isEmpty(){ return count == 0 ? true : false; }
+   	int MIDIQueue::Size() { return this->count;}
+	bool MIDIQueue::isEmpty(){ return this->count == 0 ? true : false; }
 
 
 
