@@ -48,7 +48,7 @@
 #define MIDI_STOP				0xFC
 
 
-#define MIDI_MAX_BUFFER		64
+#define MIDI_MAX_BUFFER		127
 
 
 typedef struct {

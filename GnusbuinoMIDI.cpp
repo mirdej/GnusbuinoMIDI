@@ -48,9 +48,9 @@ MIDIQueue::MIDIQueue() {
 void MIDIQueue::Enqueue(unsigned char cmd, unsigned char data1, unsigned char data2) {
 
 		if (count >= MIDI_MAX_BUFFER) {				// avoid overflow
-			unsigned char * t;
+			unsigned char  t[4];
 			this->Dequeue(t);	
-		} 
+		}
        MIDIQueueNode* tmp = new MIDIQueueNode();		       // Create a new node
 
        tmp->cmd = cmd;
