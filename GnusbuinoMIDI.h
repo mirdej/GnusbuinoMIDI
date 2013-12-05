@@ -78,8 +78,9 @@ public:
 		unsigned char _midiSendDequeueIdx;
 		unsigned char _midiOutData[4];
 		unsigned char _midiSendQueue [MIDI_MAX_BUFFER * 3];
-//		unsigned char _midiReceiveQueue [MIDI_MAX_BUFFER * 3];
-  
+		unsigned char _midiRecvEnqueueIdx;
+		unsigned char _midiRecvDequeueIdx;
+		unsigned char _midiRecvQueue [MIDI_MAX_BUFFER * 3];
 };
 
 	extern MIDIClass MIDI;

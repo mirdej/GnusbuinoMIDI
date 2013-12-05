@@ -53,14 +53,39 @@ void MIDIClass::write(unsigned char command, unsigned char pitch,unsigned char v
 
 
 void MIDIClass::receiveMIDI(unsigned char command, unsigned char pitch,unsigned char velocity){
+	// see if this command is already in queue, replace value
+	for (unsigned char i = 0; i < MIDI_MAX_BUFFER; i++) {
+		if (_midiRecvQueue[3*i] == command) {
+			if (_midiRecvQueue[3*i+1] == pitch) {
+				_midiRecvQueue[3*i+2] = velocity;
+				return;
+			}
+		}
+	}
+	_midiRecvQueue[_midiRecvEnqueueIdx++] = command;
+	_midiRecvQueue[_midiRecvEnqueueIdx++] = pitch;
+	_midiRecvQueue[_midiRecvEnqueueIdx++] = velocity;
+	
+	_midiRecvEnqueueIdx %= MIDI_MAX_BUFFER * 3;
+
 }
 
 unsigned char MIDIClass::read(MIDIMessage* msg) {
+	if (_midiRecvEnqueueIdx != _midiRecvDequeueIdx) {
+			msg->command 	= _midiRecvQueue[_midiRecvDequeueIdx];
+			msg->key 		= _midiRecvQueue[_midiRecvDequeueIdx+1];
+			msg->value 		= _midiRecvQueue[_midiRecvDequeueIdx+2];
+
+			_midiRecvQueue[_midiRecvDequeueIdx++] = 0;
+			_midiRecvQueue[_midiRecvDequeueIdx++] = 0;
+			_midiRecvQueue[_midiRecvDequeueIdx++] = 0;
+
+			_midiRecvDequeueIdx %= MIDI_MAX_BUFFER * 3;
+			return 1;			
+	} else {
+		return 0;
+	}
 }
-
-
-
-
 
 void MIDIClass::sendMIDI(void) {
 
