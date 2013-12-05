@@ -50,7 +50,7 @@
 #if defined(__AVR_ATtiny85__)
 	#define MIDI_MAX_BUFFER		10
 #else
-	#define MIDI_MAX_BUFFER		128
+	#define MIDI_MAX_BUFFER		64
 #endif
 
 typedef struct {
@@ -58,31 +58,6 @@ typedef struct {
 	unsigned char key;
 	unsigned char value;
 } MIDIMessage;
-
-/******************************************************************************
- * MIDI QUEUE
- ******************************************************************************/
-class MIDIQueueNode {
-	public: 
-		unsigned char cmd;
-		unsigned char data1;
-		unsigned char data2;
-	   	MIDIQueueNode* next;
-};
-
-class MIDIQueue {  
-private:
-    MIDIQueueNode* front;
-    MIDIQueueNode* rear;
-	int count;
-
-public:
-    MIDIQueue();
-	void Enqueue(unsigned char cmd, unsigned char data1, unsigned char data2);
-   	unsigned char Dequeue(unsigned char* data);
-   	int Size();
-	bool isEmpty();
-};
 
 
 /******************************************************************************
@@ -99,10 +74,11 @@ public:
 	void receiveMIDI(uint8_t,uint8_t,uint8_t);
 	
 	private:
-		uint8_t _midiMsg[8];
-		uint8_t _midiMsg2[4];
-		MIDIQueue _midiSendQueue;
-		MIDIQueue _midiReceiveQueue;
+		unsigned char _midiSendEnqueueIdx;
+		unsigned char _midiSendDequeueIdx;
+		unsigned char _midiOutData[4];
+		unsigned char _midiSendQueue [MIDI_MAX_BUFFER * 3];
+//		unsigned char _midiReceiveQueue [MIDI_MAX_BUFFER * 3];
   
 };
 

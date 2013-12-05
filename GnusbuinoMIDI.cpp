@@ -27,67 +27,6 @@
 
 
 
-/******************************************************************************
- * Constructors
- ******************************************************************************/
-
-/******************************************************************************
- * User API
- ******************************************************************************/
-// ------------------------------------------------------------------------------
-// - MIDI SEND QUEUE
-// ------------------------------------------------------------------------------
-
-
-MIDIQueue::MIDIQueue() {
-       front = 0;
-       rear = 0;
-       count = 0;
-   }      
- 
-void MIDIQueue::Enqueue(unsigned char cmd, unsigned char data1, unsigned char data2) {
-
-		if (this->count >= MIDI_MAX_BUFFER-1) {				// avoid overflow
-			unsigned char  t[4];
-			this->Dequeue(t);	
-	//	PORTB |= (1 << 0);
-		}
-		
-       MIDIQueueNode* tmp = new MIDIQueueNode();		       // Create a new node
-
-       tmp->cmd = cmd;
-       tmp->data1 = data1 & 0x7F;
-       tmp->data2 = data2 & 0x7F;  //midi is 7 bits only
-       tmp->next = 0;
-
-       if ( isEmpty() ) {
-           front = rear = tmp;		// Add the first element
-       } else {
-           rear->next = tmp;		  // Append to the list
-           rear = tmp;
-       }
-       this->count++;
-   }      
-
-unsigned char MIDIQueue::Dequeue(unsigned char* data) {          
-       if ( !isEmpty() ) {
-
-			data[0] = ((front->cmd>>4) & 0x0F) | ((front->cmd<<4) & 0xF0); //swap high/low nibble
-			data[1] = front->cmd;
-			data[2] = front->data1;
-			data[3] = front->data2;
-			
-      		MIDIQueueNode* tmp = front;
-      		front = front->next; // Move the front pointer to next node
-     		this->count--;
-    		delete tmp; 
-    		return 1;
-    	} else return 0;
-   } 
-   
-   	int MIDIQueue::Size() { return this->count;}
-	bool MIDIQueue::isEmpty(){ return this->count == 0 ? true : false; }
-
 
 
 
@@ -95,24 +34,28 @@ unsigned char MIDIQueue::Dequeue(unsigned char* data) {
 /* PUT MIDI DATA INTO SEND-QUEUE                                             */ 
 /*---------------------------------------------------------------------------*/
 void MIDIClass::write(unsigned char command, unsigned char pitch,unsigned char velocity){
-	_midiSendQueue.Enqueue(command,pitch,velocity);
+
+	// see if this command is already in queue, replace value
+	for (unsigned char i = 0; i < MIDI_MAX_BUFFER; i++) {
+		if (_midiSendQueue[3*i] == command) {
+			if (_midiSendQueue[3*i+1] == pitch) {
+				_midiSendQueue[3*i+2] = velocity;
+				return;
+			}
+		}
+	}
+	_midiSendQueue[_midiSendEnqueueIdx++] = command;
+	_midiSendQueue[_midiSendEnqueueIdx++] = pitch;
+	_midiSendQueue[_midiSendEnqueueIdx++] = velocity;
+	
+	_midiSendEnqueueIdx %= MIDI_MAX_BUFFER * 3;
 }
 
 
 void MIDIClass::receiveMIDI(unsigned char command, unsigned char pitch,unsigned char velocity){
-	_midiReceiveQueue.Enqueue(command,pitch,velocity);
 }
 
 unsigned char MIDIClass::read(MIDIMessage* msg) {
-	
-	if (_midiReceiveQueue.Dequeue(this->_midiMsg2)) {
-			msg->command = this->_midiMsg2[1];
-			msg->key = this->_midiMsg2[2];
-			msg->value = this->_midiMsg2[3];
-			return 1;
-	} else {
-			return 0;
-	}
 }
 
 
@@ -122,9 +65,25 @@ unsigned char MIDIClass::read(MIDIMessage* msg) {
 void MIDIClass::sendMIDI(void) {
 
 	if (usbInterruptIsReady()) {	// ready to send some MIDI ?
-		if (_midiSendQueue.Dequeue(this->_midiMsg)) {
-				//statusLedBlink(StatusLed_Yellow);
-				usbSetInterrupt(this->_midiMsg, 4);
+		if (_midiSendEnqueueIdx != _midiSendDequeueIdx) {
+
+			unsigned char cmd;
+			cmd = _midiSendQueue[_midiSendDequeueIdx];
+
+			this->_midiOutData[0] = ((cmd>>4) & 0x0F) | ((cmd<<4) & 0xF0); //swap high/low nibble
+			this->_midiOutData[1] = cmd;
+			this->_midiOutData[2] = _midiSendQueue[_midiSendDequeueIdx+1];
+			this->_midiOutData[3] = _midiSendQueue[_midiSendDequeueIdx+2];
+
+
+			_midiSendQueue[_midiSendDequeueIdx++] = 0;
+			_midiSendQueue[_midiSendDequeueIdx++] = 0;
+			_midiSendQueue[_midiSendDequeueIdx++] = 0;
+
+			_midiSendDequeueIdx %= MIDI_MAX_BUFFER * 3;
+
+			usbSetInterrupt(this->_midiOutData, 4);
+			
 		}
 	}
 }
