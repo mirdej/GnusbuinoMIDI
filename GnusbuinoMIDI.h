@@ -23,6 +23,8 @@
 #define MIDICLASS_h
 
 #include <inttypes.h>
+#include <stdio.h> // for size_t
+
 #include "GnusbuinoMIDInotes.h"
 
 /******************************************************************************
@@ -59,6 +61,11 @@ typedef struct {
 	unsigned char value;
 } MIDIMessage;
 
+#define DEC 10
+#define HEX 16
+#define OCT 8
+#define BIN 2
+
 
 /******************************************************************************
  * MIDI Class
@@ -69,8 +76,26 @@ class MIDIClass {
 public:
 	void write(uint8_t,uint8_t,uint8_t);
 	uint8_t read(MIDIMessage*);
-	void print(const char *);
-
+	size_t print(const char *);
+    size_t print(char, int = DEC);
+    size_t print(unsigned char, int = DEC);
+    size_t print(int, int = DEC);
+    size_t print(unsigned int, int = DEC);
+    size_t print(long, int = DEC);
+    size_t print(unsigned long, int = DEC);
+    size_t print(double, int = 2);
+	
+	size_t println(void);
+	size_t println(char, int = DEC);
+	size_t println(const char *);
+    size_t println(unsigned char, int = DEC);
+    size_t println(int, int = DEC);
+    size_t println(unsigned int, int = DEC);
+    size_t println(long, int = DEC);
+    size_t println(unsigned long, int = DEC);
+    size_t println(double, int = 2);
+	
+	
 	void sendMIDI(void);
 	void receiveMIDI(uint8_t,uint8_t,uint8_t);
 	

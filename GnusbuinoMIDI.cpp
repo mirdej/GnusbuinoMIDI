@@ -51,7 +51,7 @@ void MIDIClass::write(unsigned char command, unsigned char pitch,unsigned char v
 	_midiSendEnqueueIdx %= MIDI_MAX_BUFFER * 3;
 }
 
-void MIDIClass::print(const char * message){
+size_t MIDIClass::print(const char * message){
 	if (_sysex_len) {
 		_sysex_len = _sysex_len+strlen(message);
 		_sysex_buffer = (char *)realloc (_sysex_buffer,_sysex_len);
@@ -62,7 +62,102 @@ void MIDIClass::print(const char * message){
 		_sysex_buffer = (char *)malloc (_sysex_len+1);
 		strcpy (_sysex_buffer, message);
 	}
+	return _sysex_len;
 }
+
+const char *byte_to_binary(int x){
+    static char b[9];
+    b[0] = '\0';
+
+    int z;
+    for (z = 128; z > 0; z >>= 1)
+    {
+        strcat(b, ((x & z) == z) ? "1" : "0");
+    }
+
+    return b;
+}
+
+size_t MIDIClass::print(unsigned long d, int base){
+	char temp[36];
+	switch (base) {
+		case DEC: sprintf(temp,"%u",d); break;
+		case BIN: sprintf(temp,"0b%s",byte_to_binary(d)); break;
+		case HEX: sprintf(temp,"0x%X",d); break;
+	}
+	return print(temp);
+}
+
+size_t MIDIClass::print(long d, int base){
+	char temp[36];
+	switch (base) {
+		case DEC: sprintf(temp,"%d",d); break;
+		case BIN: sprintf(temp,"0b%s",byte_to_binary(d)); break;
+		case HEX: sprintf(temp,"0x%X",d); break;
+	}
+	return print(temp);
+}
+
+size_t MIDIClass::print(unsigned int d, int base){
+	return print((unsigned long)d,base);
+}
+
+size_t MIDIClass::print(unsigned char d, int base){
+	return print((unsigned long)d,base);
+}
+
+size_t MIDIClass::print(char d, int base){
+	return print((long)d,base);
+}
+
+size_t MIDIClass::print(int d, int base){
+	return print((unsigned long)d,base);
+}
+
+size_t MIDIClass::print(double d, int comma) {
+	char temp[36];
+	sprintf(temp,"%F",2.678);
+	return print(temp);
+}
+
+size_t MIDIClass::println(void){
+  size_t n = print("\r\n");
+  return n;
+}
+
+size_t MIDIClass::println(const char * c) {
+	print(c);
+	return println();
+}
+
+size_t MIDIClass::println(char c, int base) {
+	print(c,base);
+	return println();
+}
+
+size_t MIDIClass::println(int c, int base) {
+	print(c,base);
+	return println();
+}
+
+size_t MIDIClass::println(long c, int base) {
+	print(c,base);
+	return println();
+}
+
+size_t MIDIClass::println(unsigned char c, int base) {
+	print(c,base);
+	return println();
+}
+size_t MIDIClass::println(unsigned int c, int base) {
+	print(c,base);
+	return println();
+}
+size_t MIDIClass::println(unsigned long c, int base) {
+	print(c,base);
+	return println();
+}
+
 
 
 void MIDIClass::receiveMIDI(unsigned char command, unsigned char pitch,unsigned char velocity){
