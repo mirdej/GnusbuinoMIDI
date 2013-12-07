@@ -52,10 +52,16 @@ void MIDIClass::write(unsigned char command, unsigned char pitch,unsigned char v
 }
 
 void MIDIClass::print(const char * message){
-	_sysex_idx = 0;
-	_sysex_len = strlen(message)+1;
-	_sysex_buffer = (char *)malloc (_sysex_len+1);
-	strcpy (_sysex_buffer, message);
+	if (_sysex_len) {
+		_sysex_len = _sysex_len+strlen(message);
+		_sysex_buffer = (char *)realloc (_sysex_buffer,_sysex_len);
+		_sysex_buffer = strcat (_sysex_buffer, message);
+	} else {
+		_sysex_idx = 0;
+		_sysex_len = strlen(message)+1;
+		_sysex_buffer = (char *)malloc (_sysex_len+1);
+		strcpy (_sysex_buffer, message);
+	}
 }
 
 
@@ -152,6 +158,7 @@ void MIDIClass::sendMIDI(void) {
 						this->_midiOutData[3] = 0x00;
 					}
 					_sysex_len = 0;
+					_sysex_idx = 0;
 					free(_sysex_buffer);
 				}
 				
