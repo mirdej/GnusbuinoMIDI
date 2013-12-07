@@ -69,18 +69,26 @@ class MIDIClass {
 public:
 	void write(uint8_t,uint8_t,uint8_t);
 	uint8_t read(MIDIMessage*);
+	void print(const char *);
 
 	void sendMIDI(void);
 	void receiveMIDI(uint8_t,uint8_t,uint8_t);
 	
 	private:
+		unsigned char _midiOutData[4];
+
 		unsigned char _midiSendEnqueueIdx;
 		unsigned char _midiSendDequeueIdx;
-		unsigned char _midiOutData[4];
 		unsigned char _midiSendQueue [MIDI_MAX_BUFFER * 3];
+	
 		unsigned char _midiRecvEnqueueIdx;
 		unsigned char _midiRecvDequeueIdx;
 		unsigned char _midiRecvQueue [MIDI_MAX_BUFFER * 3];
+
+		char * _sysex_buffer;
+		unsigned char _sysex_idx;
+		unsigned char _sysex_len;
+
 };
 
 	extern MIDIClass MIDI;

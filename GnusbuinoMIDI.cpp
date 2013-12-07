@@ -51,6 +51,13 @@ void MIDIClass::write(unsigned char command, unsigned char pitch,unsigned char v
 	_midiSendEnqueueIdx %= MIDI_MAX_BUFFER * 3;
 }
 
+void MIDIClass::print(const char * message){
+	_sysex_idx = 0;
+	_sysex_len = strlen(message)+1;
+	_sysex_buffer = (char *)malloc (_sysex_len+1);
+	strcpy (_sysex_buffer, message);
+}
+
 
 void MIDIClass::receiveMIDI(unsigned char command, unsigned char pitch,unsigned char velocity){
 	// see if this command is already in queue, replace value
@@ -90,6 +97,70 @@ unsigned char MIDIClass::read(MIDIMessage* msg) {
 void MIDIClass::sendMIDI(void) {
 
 	if (usbInterruptIsReady()) {	// ready to send some MIDI ?
+	
+	// Sysex handling:
+			// Sysex have to be split up into multiple packets of 32 bits ( 1 byte status, 3 bytes payload )
+			// examples: 
+			// message with 4 bytes		00 01 02 03 		means sysex message		F0 00 01 02 03 F7 			becomes 	04 F0 00 01 - 07 02 03 F7
+			// message with 5 bytes		00 01 02 03 04								F0 00 01 02 03 04 F7 					04 F0 00 01 - 04 02 03 04 - 05 F7 00 00
+			// message with 6 bytes		00 01 02 03 04 05							F0 00 01 02 03 04 05 F7 				04 F0 00 01 - 04 02 03 04 - 06 05 F7 00
+			
+
+			
+	// Sysex handling:
+			// Sysex have to be split up into multiple packets of 32 bits ( 1 byte status, 3 bytes payload )
+			// examples: 
+			// message with 4 bytes		00 01 02 03 		means sysex message		F0 00 01 02 03 F7 			becomes 	04 F0 00 01 - 07 02 03 F7
+			// message with 5 bytes		00 01 02 03 04								F0 00 01 02 03 04 F7 					04 F0 00 01 - 04 02 03 04 - 05 F7 00 00
+			// message with 6 bytes		00 01 02 03 04 05							F0 00 01 02 03 04 05 F7 				04 F0 00 01 - 04 02 03 04 - 06 05 F7 00
+			
+
+			
+			if (_sysex_len) {
+				
+				if (_sysex_len > 3) {
+					this->_midiOutData[0] = 0x04;							//	USB-MIDI: Sysex on cable 0
+					
+					if (_sysex_idx == 0) {
+						this->_midiOutData[1] = 0xF0;						// 	MIDI Sysex message
+					} else {
+						this->_midiOutData[1] = _sysex_buffer[_sysex_idx++];
+						_sysex_len -= 1;
+					}
+					this->_midiOutData[2] = _sysex_buffer[_sysex_idx++];
+					this->_midiOutData[3] = _sysex_buffer[_sysex_idx++];
+					_sysex_len -= 2;
+					
+				} else {
+				
+					if (_sysex_len == 3) {
+						this->_midiOutData[0] = 0x07;										//	USB-MIDI: SysEx ends with following three bytes.
+						this->_midiOutData[1] = _sysex_buffer[_sysex_idx++];
+						this->_midiOutData[2] = _sysex_buffer[_sysex_idx++];
+						this->_midiOutData[3] = 0xF7;
+						
+					} else if (_sysex_len == 2) {
+						this->_midiOutData[0] = 0x06;									//	USB-MIDI: SysEx ends with following two bytes.
+						this->_midiOutData[1] = _sysex_buffer[_sysex_idx++];
+						this->_midiOutData[2] = 0xF7;
+						this->_midiOutData[3] = 0x00;
+						
+					} else {
+						this->_midiOutData[0] = 0x05;															//	USB-MIDI: SysEx ends with following one byte.
+						this->_midiOutData[1] = 0xF7;
+						this->_midiOutData[2] = 0x00;
+						this->_midiOutData[3] = 0x00;
+					}
+					_sysex_len = 0;
+					free(_sysex_buffer);
+				}
+				
+				usbSetInterrupt(this->_midiOutData, 4);
+
+				return;
+		}
+			
+			
 		if (_midiSendEnqueueIdx != _midiSendDequeueIdx) {
 
 			unsigned char cmd;
