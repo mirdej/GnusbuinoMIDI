@@ -97,6 +97,8 @@ public:
 	
 	
 	void sendMIDI(void);
+	void flush(void);
+	
 	void receiveMIDI(uint8_t,uint8_t,uint8_t);
 	
 	private:

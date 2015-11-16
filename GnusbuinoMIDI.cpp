@@ -26,6 +26,7 @@
 #include "usbdrv.h"
 
 
+#include <avr/wdt.h>
 
 
 
@@ -285,6 +286,21 @@ void MIDIClass::sendMIDI(void) {
 		}
 	}
 }
+
+
+void MIDIClass::flush(void) {
+
+    while( _sysex_len | _midiSendEnqueueIdx != _midiSendDequeueIdx) {
+     	//doPeriodical();
+     			usbPoll();
+		MIDI.sendMIDI();        
+		wdt_reset();
+
+    }
+}
+
+
+
 
 
 
