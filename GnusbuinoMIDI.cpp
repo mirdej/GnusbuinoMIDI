@@ -34,7 +34,7 @@
 /*---------------------------------------------------------------------------*/
 /* PUT MIDI DATA INTO SEND-QUEUE                                             */ 
 /*---------------------------------------------------------------------------*/
-void MIDIClass::write(unsigned char command, unsigned char pitch,unsigned char velocity){
+void MIDIClass::write(unsigned char command, unsigned char pitch,unsigned char velocity, unsigned char channel){
 
 	// see if this command is already in queue, replace value
 	for (unsigned char i = 0; i < MIDI_MAX_BUFFER; i++) {
@@ -45,7 +45,10 @@ void MIDIClass::write(unsigned char command, unsigned char pitch,unsigned char v
 			}
 		}
 	}
-	_midiSendQueue[_midiSendEnqueueIdx++] = command;
+	if (channel > 0) channel--;
+	channel %= 16;
+
+	_midiSendQueue[_midiSendEnqueueIdx++] = command | channel;
 	_midiSendQueue[_midiSendEnqueueIdx++] = pitch;
 	_midiSendQueue[_midiSendEnqueueIdx++] = velocity;
 	
@@ -181,7 +184,8 @@ void MIDIClass::receiveMIDI(unsigned char command, unsigned char pitch,unsigned 
 
 unsigned char MIDIClass::read(MIDIMessage* msg) {
 	if (_midiRecvEnqueueIdx != _midiRecvDequeueIdx) {
-			msg->command 	= _midiRecvQueue[_midiRecvDequeueIdx];
+			msg->command 	= _midiRecvQueue[_midiRecvDequeueIdx] & 0xF0;
+			msg->channel 	= (_midiRecvQueue[_midiRecvDequeueIdx] & 0x0F) + 1;
 			msg->key 		= _midiRecvQueue[_midiRecvDequeueIdx+1];
 			msg->value 		= _midiRecvQueue[_midiRecvDequeueIdx+2];
 
